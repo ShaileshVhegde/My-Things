@@ -18,10 +18,7 @@ const sendEmail = require('../utils/sendEmail');
 
 const sendExpiryEmail = async ({ to, userName, productName, daysLeft, expiryDate }) => {
   try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.warn('[notificationService] Email not configured — skipping email to:', to);
-      return;
-    }
+    // Resend will handle its own API key validation inside sendEmail
 
     const isExpired = daysLeft <= 0;
     const subjectLine = isExpired
