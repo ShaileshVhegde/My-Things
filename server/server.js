@@ -18,6 +18,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'https://my-things-kappa.vercel.app',
   'https://my-things-rho.vercel.app',
+  'https://my-things-nine.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
