@@ -9,6 +9,18 @@ const { createNotification } = require('../utils/notificationHelper');
 
 const router = express.Router();
 
+// TEMP DEBUG: Test if email config is working — hit GET /api/auth/test-email?to=yourname@gmail.com
+router.get('/test-email', async (req, res) => {
+  const to = req.query.to;
+  if (!to) return res.status(400).json({ error: 'Add ?to=youremail@gmail.com in the URL' });
+  try {
+    await sendEmail({ to, subject: 'My Things Email Test', html: '<p>If you see this, email is working!</p>' });
+    res.json({ success: true, message: `Test email sent to ${to}` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // GET /api/auth/me — returns current user with fresh role from DB
 router.get('/me', authMiddleware, async (req, res) => {
   try {
@@ -112,6 +124,7 @@ router.post('/signup', async (req, res) => {
 
     await newUser.save();
     console.log('User created:', newUser.email);
+    console.log('[DEBUG] OTP for', email, ':', otp); // TEMP: remove after email is confirmed working
 
     // Send 201 response IMMEDIATELY — do NOT await email so the browser never hangs
     res.status(201).json({ message: 'User created successfully. OTP sent to your email.' });
