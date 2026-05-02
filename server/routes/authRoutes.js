@@ -64,6 +64,7 @@ const syncUserRole = async (user) => {
 router.post('/signup', async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    console.log("Incoming body:", req.body);
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Please provide all required fields' });
@@ -83,6 +84,7 @@ router.post('/signup', async (req, res) => {
         existingUser.password = await bcrypt.hash(password, salt);
         await existingUser.save();
 
+        console.log("Sending OTP to:", email);
         await sendEmail({
           to: email,
           subject: 'My Things  - Verify Your Account',
@@ -108,7 +110,9 @@ router.post('/signup', async (req, res) => {
     });
 
     await newUser.save();
+    console.log("User created:", newUser.email);
 
+    console.log("Sending OTP to:", email);
     await sendEmail({
       to: email,
       subject: 'My Things  - Verify Your Account',
