@@ -217,7 +217,7 @@ const sections_content = [
 
   // ──── COVER PAGE ────────────────────────────────────────────────────────────
   new Paragraph({ spacing: { before: 1440 }, children: [] }),
-  new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'WARRANTY VAULT', font: 'Arial', size: 72, bold: true, color: C.primary })] }),
+  new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'My Things ', font: 'Arial', size: 72, bold: true, color: C.primary })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 120, after: 120 }, children: [new TextRun({ text: 'Smart Warranty & Product Tracker Platform', font: 'Arial', size: 36, color: C.muted })] }),
   divider(),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 160, after: 80 }, children: [new TextRun({ text: 'UI/UX BLUEPRINT & FRONTEND DESIGN SYSTEM', font: 'Arial', size: 28, bold: true, color: '2C2C3E' })] }),
@@ -576,7 +576,7 @@ const sections_content = [
     '   │         [ANIMATED LOGO MARK]         │  ',
     '   │         ── shield + shield ──        │  ',
     '   │                                      │  ',
-    '   │      WARRANTY VAULT                  │  ',
+    '   │      My Things                   │  ',
     '   │      Smart. Secure. Tracked.         │  ',
     '   │                                      │  ',
     '   │         [progress bar ████░░]        │  ',
@@ -614,7 +614,7 @@ const sections_content = [
   // SCREEN 3: AUTH
   ...wireframe('Screen 3 — Authentication (Login / Register)', [
     '┌────────────────────────────────────────────┐',
-    '│   ← Back       WARRANTY VAULT logo         │',
+    '│   ← Back       My Things  logo         │',
     '├────────────────────────────────────────────┤',
     '│   Welcome Back                             │',
     '│   Sign in to your account                 │',
@@ -660,7 +660,7 @@ const sections_content = [
   // SCREEN 5: DASHBOARD
   ...wireframe('Screen 5 — Dashboard (Main)', [
     '┌────────────────────────────────────────────┐',
-    '│  ☰  WARRANTY VAULT          [🔔] [Avatar]  │',
+    '│  ☰  My Things           [🔔] [Avatar]  │',
     '├────────────────────────────────────────────┤',
     '│  Good morning, Shailesh 👋                 │',
     '│                                            │',
@@ -784,7 +784,7 @@ const sections_content = [
     '│  Add Notes (optional)                      │',
     '│  [ __________________________________ ]    │',
     '│                                            │',
-    '│  [     Save to Warranty Vault ✓     ]      │',
+    '│  [     Save to My Things  ✓     ]      │',
     '└────────────────────────────────────────────┘',
   ]),
 
@@ -876,7 +876,7 @@ const sections_content = [
   // SCREEN 13: ADMIN
   ...wireframe('Screen 13 — Admin Panel (Web Only, Desktop)', [
     '┌──────────────────────────────────────────────────────────┐',
-    '│ WARRANTY VAULT ADMIN     [Shailesh — Admin] [Sign Out]   │',
+    '│ My Things  ADMIN     [Shailesh — Admin] [Sign Out]   │',
     '├──────────┬───────────────────────────────────────────────┤',
     '│ Dashboard│  System Overview                              │',
     '│ Users    │  ┌───────────┐ ┌───────────┐ ┌───────────┐   │',
@@ -1105,7 +1105,7 @@ const sections_content = [
   bullet('Google + Facebook OAuth buttons must use OFFICIAL brand SVG logos', 0, C.danger),
 
   divider(),
-  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 240, after: 120 }, children: [new TextRun({ text: 'WARRANTY VAULT — UI/UX Blueprint v1.0', font: 'Arial', size: 24, bold: true, color: C.primary })] }),
+  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 240, after: 120 }, children: [new TextRun({ text: 'My Things  — UI/UX Blueprint v1.0', font: 'Arial', size: 24, bold: true, color: C.primary })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Production-ready frontend design system for coding agents', font: 'Arial', size: 20, color: C.muted, italics: true })] }),
 ];
 
@@ -1149,7 +1149,7 @@ const doc = new Document({
       default: new Header({
         children: [new Paragraph({
           border: { bottom: { style: BorderStyle.SINGLE, size: 2, color: C.primary } },
-          children: [new TextRun({ text: 'WARRANTY VAULT  ·  UI/UX Blueprint & Design System', font: 'Arial', size: 18, color: C.muted })]
+          children: [new TextRun({ text: 'My Things   ·  UI/UX Blueprint & Design System', font: 'Arial', size: 18, color: C.muted })]
         })]
       })
     },

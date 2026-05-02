@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import HomeTrackLogo from '../components/HomeTrackLogo';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -24,13 +25,11 @@ const Splash = ({ onComplete }) => {
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1, boxShadow: ["0 0 0 0 rgba(108,71,255,0.4)", "0 0 0 15px rgba(108,71,255,0)"] }}
-        transition={{ duration: 0.8, ease: "easeOut", repeat: Infinity, repeatType: "reverse" }}
-        className="mb-6 w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden bg-primary/10"
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="mb-6"
       >
-        <img src="/logo.png" alt="My Things  Logo" className="w-full h-full object-cover"
-          onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
-        <ShieldCheck size={80} strokeWidth={1.5} className="text-primary hidden" />
+        <HomeTrackLogo size={120} animated={true} />
       </motion.div>
       <motion.h1
         initial={{ opacity: 0, y: 10 }}
@@ -38,7 +37,7 @@ const Splash = ({ onComplete }) => {
         transition={{ delay: 0.3 }}
         className="text-3xl font-display font-bold text-textPrimary tracking-wide"
       >
-        WARRANTY VAULT
+        My Things
       </motion.h1>
       <motion.p
         initial={{ opacity: 0 }}
@@ -84,12 +83,8 @@ export default function LandingPage() {
           {/* Header */}
           <header className="px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
             <div className="flex items-center gap-3 font-display font-bold text-xl text-textPrimary">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-primary/10">
-                <img src="/logo.png" alt="Logo" className="w-full h-full object-cover"
-                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
-                <ShieldCheck size={20} className="text-primary hidden" />
-              </div>
-              <span>My Things </span>
+              <HomeTrackLogo size={40} animated={false} />
+              <span>My Things</span>
             </div>
             <button
               onClick={() => navigate('/login')}

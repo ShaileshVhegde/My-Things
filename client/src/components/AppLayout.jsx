@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Moon, Sun, LogOut } from 'lucide-react';
+import { Moon, Sun, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Sidebar from './navigation/Sidebar';
 import MobileNavbar from './navigation/MobileNavbar';
 import NotificationBell from './navigation/NotificationBell';
+import HomeTrackLogo from './HomeTrackLogo';
 
 export default function AppLayout({ children }) {
   const { logout, user } = useAuth();
@@ -26,12 +27,8 @@ export default function AppLayout({ children }) {
         <header className="flex items-center justify-between px-4 py-3 border-b border-borderBase bg-bgSurface relative z-20">
           {/* Mobile Logo */}
           <div className="md:hidden flex items-center gap-2 font-display font-bold text-textPrimary">
-            <div className="w-6 h-6 rounded flex items-center justify-center overflow-hidden bg-primary/10">
-              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover"
-                onError={(e) => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block'; }} />
-              <ShieldCheck size={16} className="text-primary hidden" />
-            </div>
-            <span>My Things </span>
+            <HomeTrackLogo size={34} animated={false} />
+            <span>My Things</span>
           </div>
           
           <div className="hidden md:block"></div>

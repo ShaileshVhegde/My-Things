@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
+import HomeTrackLogo from '../components/HomeTrackLogo';
 
 const slideInRight = {
   initial: { opacity: 0, x: 40 },
@@ -105,12 +106,8 @@ export default function SignupPage() {
           <ArrowLeft size={24} />
         </button>
         <div className="flex items-center gap-2 font-display font-bold text-lg text-textPrimary">
-          <div className="w-6 h-6 rounded flex items-center justify-center overflow-hidden bg-primary/10">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover"
-              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
-            <ShieldCheck size={16} className="text-primary hidden" />
-          </div>
-          <span>My Things </span>
+          <HomeTrackLogo size={36} animated={false} />
+          <span>My Things</span>
         </div>
       </header>
 

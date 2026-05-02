@@ -51,7 +51,7 @@ async function extractStructuredSummary(rawText) {
   Use "N/A" for any field not found. Return ONLY the JSON, no extra text.`;
 
   const prompt = `Extract product name, purchase date, warranty expiry, and store details from this text:\n\n${rawText.slice(0, 3000)}`;
-  
+
   try {
     const raw = await askAI(systemPrompt, prompt);
     // Strip markdown code fences if present

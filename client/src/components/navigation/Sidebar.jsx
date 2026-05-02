@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { House, BrainCircuit, Package, Plus, Info, ShieldCheck, Sun, Moon, LogOut, Bell, Shield } from 'lucide-react';
+import { House, BrainCircuit, Package, Plus, Info, Sun, Moon, LogOut, Bell, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useNotifications } from '../../context/NotificationContext';
 import NotificationModal from './NotificationModal';
+import HomeTrackLogo from '../HomeTrackLogo';
 
 const navItems = [
   { label: 'Dashboard', icon: House, to: '/dashboard' },
@@ -29,12 +30,8 @@ export default function Sidebar() {
     <aside className="hidden md:flex flex-col w-64 h-full bg-bgSurface border-r border-borderBase z-30 fixed top-0 left-0">
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-borderBase">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-primary/10">
-          <img src="/logo.png" alt="Logo" className="w-full h-full object-cover"
-            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
-          <ShieldCheck size={18} className="text-primary hidden" />
-        </div>
-        <span className="font-display font-bold text-textPrimary text-lg">My Things </span>
+        <HomeTrackLogo size={40} animated={false} />
+        <span className="font-display font-bold text-textPrimary text-lg">My Things</span>
       </div>
 
       {/* Nav */}

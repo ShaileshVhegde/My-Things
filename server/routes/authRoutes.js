@@ -269,4 +269,123 @@ router.post('/google', async (req, res) => {
   }
 });
 
+// ── FORGOT PASSWORD FLOW ─────────────────────────────────────────────────────
+
+// POST /api/auth/forgot-password
+// Step 1 — accept email, generate OTP, send it
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    // Always respond the same way to prevent email enumeration
+    if (!user || user.authProvider !== 'local') {
+      return res.status(200).json({ message: 'If that email exists, an OTP has been sent.' });
+    }
+
+    const otp = generateOTP();
+    user.otp = otp;
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await user.save();
+
+    await sendEmail({
+      to: user.email,
+      subject: 'My Things — Reset Your Password',
+      html: `
+        <h2>Password Reset</h2>
+        <p>Your password reset code is: <strong style="font-size:24px;letter-spacing:4px">${otp}</strong></p>
+        <p>This code expires in <strong>10 minutes</strong>. If you didn't request this, ignore this email.</p>
+      `,
+    });
+
+    res.status(200).json({ message: 'If that email exists, an OTP has been sent.' });
+  } catch (err) {
+    console.error('[forgot-password]', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// POST /api/auth/verify-reset-otp
+// Step 2 — verify OTP, return a short-lived reset token (NOT a full auth JWT)
+router.post('/verify-reset-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required.' });
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (user.otp !== otp || !user.otpExpires || user.otpExpires < Date.now()) {
+      return res.status(400).json({ error: 'Invalid or expired OTP.' });
+    }
+
+    // Clear OTP — it's been used
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+
+    // Issue a short-lived reset token (5 min) scoped only to password reset
+    const resetToken = jwt.sign(
+      { id: user._id, purpose: 'password_reset' },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '5m' }
+    );
+
+    res.status(200).json({ resetToken, message: 'OTP verified.' });
+  } catch (err) {
+    console.error('[verify-reset-otp]', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// POST /api/auth/reset-password
+// Step 3 — set new password (optional — user can skip on the frontend)
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+    if (!resetToken || !newPassword) {
+      return res.status(400).json({ error: 'Reset token and new password are required.' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+
+    let payload;
+    try {
+      payload = jwt.verify(resetToken, process.env.JWT_SECRET || 'fallback_secret');
+    } catch {
+      return res.status(401).json({ error: 'Reset token is invalid or has expired. Please start again.' });
+    }
+
+    if (payload.purpose !== 'password_reset') {
+      return res.status(401).json({ error: 'Invalid token purpose.' });
+    }
+
+    const user = await User.findById(payload.id);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    const salt = await bcrypt.genSalt(12);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    // Return a full auth JWT so the frontend can log the user in directly
+    await syncUserRole(user);
+    const authToken = jwt.sign(
+      { id: user._id, email: user.email, name: user.name, role: user.role },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '7d' }
+    );
+
+    res.status(200).json({
+      message: 'Password reset successfully.',
+      token: authToken,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+    });
+  } catch (err) {
+    console.error('[reset-password]', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
 module.exports = router;
