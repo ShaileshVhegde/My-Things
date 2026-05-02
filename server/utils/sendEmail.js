@@ -1,29 +1,32 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async ({ to, subject, html }) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: process.env.EMAIL_PORT || 465,
-      secure: true, // Force secure for production reliability (Gmail uses 465 secure)
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS, // Check both just in case
-      },
-    });
+  // Log env vars presence (not values) to help debug Railway config
+  console.log('[sendEmail] EMAIL_USER set:', !!process.env.EMAIL_USER);
+  console.log('[sendEmail] EMAIL_PASSWORD set:', !!(process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS));
+  console.log('[sendEmail] Sending to:', to);
 
-    const mailOptions = {
-      from: `"My Things " <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
-    };
+  const transporter = nodemailer.createTransport({
+    service: 'gmail', // Use Gmail shorthand — handles host/port/secure automatically
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS,
+    },
+    // Abort if Gmail doesn't respond within 10 seconds
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+  });
 
-    await transporter.sendMail(mailOptions);
-  } catch (error) {
-    console.error('Error sending email:', error);
-    throw new Error('Could not send email');
-  }
+  const mailOptions = {
+    from: `"My Things" <${process.env.EMAIL_USER}>`,
+    to,
+    subject,
+    html,
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log('[sendEmail] Message sent:', info.messageId);
 };
 
 module.exports = sendEmail;
