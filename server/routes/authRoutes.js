@@ -76,7 +76,6 @@ const syncUserRole = async (user) => {
 router.post('/signup', async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    console.log("Incoming body:", req.body);
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Please provide all required fields' });
@@ -90,27 +89,30 @@ router.post('/signup', async (req, res) => {
         // Resend OTP if user exists but isn't verified
         const otp = generateOTP();
         existingUser.otp = otp;
-        existingUser.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        existingUser.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
         existingUser.name = name;
         const salt = await bcrypt.genSalt(12);
         existingUser.password = await bcrypt.hash(password, salt);
         await existingUser.save();
 
-        // Respond immediately — fire email in background
-        console.log('Sending OTP to:', email);
-        sendEmail({
-          to: email,
-          subject: 'My Things - Verify Your Account',
-          html: `<h1>Welcome to My Things</h1><p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
-        }).catch(err => console.error('Email send failed (resend OTP):', err.message));
+        console.log('[DEBUG] OTP for', email, ':', otp);
 
-        return res.status(200).json({ message: 'OTP sent to your email. Please verify.' });
+        // Respond FIRST, then fire email completely outside this call stack
+        res.status(200).json({ message: 'OTP sent to your email. Please verify.' });
+
+        setTimeout(() => {
+          sendEmail({
+            to: email,
+            subject: 'My Things - Verify Your Account',
+            html: `<h1>Welcome to My Things</h1><p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
+          }).catch(() => {}); // sendEmail already logs errors internally
+        }, 0);
+        return;
       }
     }
 
     const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(password, salt);
-
     const otp = generateOTP();
 
     const newUser = new User({
@@ -119,26 +121,29 @@ router.post('/signup', async (req, res) => {
       password: hashedPassword,
       authProvider: 'local',
       otp,
-      otpExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 mins
+      otpExpires: new Date(Date.now() + 10 * 60 * 1000),
     });
 
     await newUser.save();
-    console.log('User created:', newUser.email);
-    console.log('[DEBUG] OTP for', email, ':', otp); // TEMP: remove after email is confirmed working
+    console.log('[signup] User created:', newUser.email);
+    console.log('[DEBUG] OTP for', email, ':', otp);
 
-    // Send 201 response IMMEDIATELY — do NOT await email so the browser never hangs
+    // Send response FIRST — browser gets 201 immediately
     res.status(201).json({ message: 'User created successfully. OTP sent to your email.' });
 
-    // Fire email in background after response is sent
-    console.log('Sending OTP to:', email);
-    sendEmail({
-      to: email,
-      subject: 'My Things - Verify Your Account',
-      html: `<h1>Welcome to My Things</h1><p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
-    }).catch(err => console.error('Email send failed (signup OTP):', err.message));
+    // Fire email completely outside request lifecycle
+    setTimeout(() => {
+      sendEmail({
+        to: email,
+        subject: 'My Things - Verify Your Account',
+        html: `<h1>Welcome to My Things</h1><p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
+      }).catch(() => {}); // sendEmail already logs errors internally
+    }, 0);
   } catch (error) {
     console.error('Signup Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 });
 

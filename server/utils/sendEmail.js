@@ -1,39 +1,47 @@
 const nodemailer = require('nodemailer');
 
+/**
+ * Send email using Gmail SMTP.
+ * Returns { success, messageId?, error? } — NEVER throws.
+ * This is critical: callers must not crash if email fails.
+ */
 const sendEmail = async ({ to, subject, html }) => {
-  console.log('[sendEmail] EMAIL_USER:', process.env.EMAIL_USER);
-  console.log('[sendEmail] EMAIL_PASSWORD set:', !!(process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS));
-  console.log('[sendEmail] Sending to:', to);
+  // Guard: if email config is missing, log and return silently
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS;
 
-  // Try port 587 (STARTTLS) — Railway often blocks port 465 (SSL)
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,       // false = STARTTLS (upgrades to TLS after handshake)
-    requireTLS: true,    // Force TLS upgrade, don't allow plain text
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS,
-    },
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 15000,
-  });
+  if (!user || !pass) {
+    console.warn('[sendEmail] ⚠️ EMAIL_USER or EMAIL_PASSWORD not set — skipping email');
+    return { success: false, error: 'Email credentials not configured' };
+  }
 
-  const mailOptions = {
-    from: `"My Things" <${process.env.EMAIL_USER}>`,
-    to,
-    subject,
-    html,
-  };
+  console.log('[sendEmail] Sending to:', to, 'from:', user);
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('[sendEmail] ✅ Message sent:', info.messageId);
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      requireTLS: true,
+      auth: { user, pass },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
+    });
+
+    const info = await transporter.sendMail({
+      from: `"My Things" <${user}>`,
+      to,
+      subject,
+      html,
+    });
+
+    console.log('[sendEmail] ✅ Sent:', info.messageId);
+    return { success: true, messageId: info.messageId };
   } catch (error) {
-    // Log full error so Railway logs show exactly what failed
-    console.error('[sendEmail] ❌ FAILED:', error.code, error.message);
-    throw error;
+    console.error('[sendEmail] ❌ FAILED:', error.code || 'UNKNOWN', error.message);
+    // Return error info — NEVER throw. Callers handle gracefully.
+    return { success: false, error: error.message };
   }
 };
 
