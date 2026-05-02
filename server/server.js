@@ -14,20 +14,20 @@ const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
-// Environment Detection
-const isProd = process.env.NODE_ENV === 'production';
+// CORS — allow localhost + FRONTEND_URL (works in dev AND prod without depending on NODE_ENV)
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
-// Middleware
-const allowedOrigin = isProd 
-  ? process.env.FRONTEND_URL 
-  : 'http://localhost:5173';
+console.log('[CORS] Allowed origins:', ALLOWED_ORIGINS);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow no-origin requests (Postman/curl) or the configured frontend origin
-    if (!origin || origin === allowedOrigin) {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`[CORS] Blocked origin: ${origin}`);
       callback(new Error(`CORS: Origin ${origin} not allowed`));
     }
   },
