@@ -1,5 +1,5 @@
 const express = require('express');
-const { addProduct, getProducts, getProductById, deleteProduct, getProductStats } = require('../controllers/productController');
+const { addProduct, getProducts, getProductById, updateProduct, deleteProduct, getProductStats } = require('../controllers/productController');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
@@ -35,6 +35,7 @@ router.post('/add', (req, res, next) => {
 router.post('/add', addProduct);
 router.get('/', getProducts);
 router.get('/:id', getProductById);
+router.patch('/:id', updateProduct);   // ← new update route
 router.delete('/:id', deleteProduct);
 
 module.exports = router;

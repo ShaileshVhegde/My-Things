@@ -5,6 +5,7 @@ const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 const authMiddleware = require('../middleware/auth');
+const { createNotification } = require('../utils/notificationHelper');
 
 const router = express.Router();
 
@@ -155,6 +156,12 @@ router.post('/verify-otp', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    // ── Welcome in-app notification ──
+    await createNotification({
+      userId: user._id,
+      type: 'welcome',
+      message: `🎉 Welcome to My Things, ${user.name}! Your account is verified and ready. Start adding your products to track warranties.`,
+    });
     res.status(200).json({
       message: 'Account verified successfully',
       token,

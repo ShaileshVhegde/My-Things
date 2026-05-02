@@ -1,5 +1,6 @@
 const Product = require('../models/Product');
 const { cloudinary } = require('../config/cloudinary');
+const { createNotification } = require('../utils/notificationHelper');
 
 // POST /api/products/add
 const addProduct = async (req, res) => {
@@ -28,11 +29,7 @@ const addProduct = async (req, res) => {
     if (req.files) {
       for (const [type, files] of Object.entries(req.files)) {
         for (const file of files) {
-          documents.push({
-            url: file.path,
-            publicId: file.filename,
-            type: type
-          });
+          documents.push({ url: file.path, publicId: file.filename, type });
         }
       }
     }
@@ -52,6 +49,14 @@ const addProduct = async (req, res) => {
       },
       notes: notes || '',
       documents,
+    });
+
+    // ── In-app notification ──
+    await createNotification({
+      userId: req.user.id,
+      type: 'product_added',
+      message: `✅ "${productName}" has been added to your vault. Warranty expires on ${expiryDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}.`,
+      productId: product._id,
     });
 
     res.status(201).json({ message: 'Product added successfully', product });
@@ -137,11 +142,52 @@ const getProductById = async (req, res) => {
   }
 };
 
+// PATCH /api/products/:id
+const updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    const allowedFields = ['productName', 'category', 'notes', 'warrantyValue', 'warrantyUnit', 'purchaseDate', 'storeDetails'];
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) product[field] = req.body[field];
+    });
+
+    // Recalculate expiry if warranty fields changed
+    if (req.body.purchaseDate || req.body.warrantyValue || req.body.warrantyUnit) {
+      const purchase = new Date(product.purchaseDate);
+      const expiry = new Date(purchase);
+      const val = parseInt(product.warrantyValue);
+      if (product.warrantyUnit === 'Days') expiry.setDate(expiry.getDate() + val);
+      else if (product.warrantyUnit === 'Months') expiry.setMonth(expiry.getMonth() + val);
+      else if (product.warrantyUnit === 'Years') expiry.setFullYear(expiry.getFullYear() + val);
+      product.warrantyExpiryDate = expiry;
+    }
+
+    await product.save();
+
+    // ── In-app notification ──
+    await createNotification({
+      userId: req.user.id,
+      type: 'product_updated',
+      message: `✏️ "${product.productName}" details have been updated successfully.`,
+      productId: product._id,
+    });
+
+    res.status(200).json({ message: 'Product updated successfully', product });
+  } catch (error) {
+    console.error('Update Product Error:', error);
+    res.status(500).json({ error: error.message || 'Failed to update product' });
+  }
+};
+
 // DELETE /api/products/:id
 const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findOne({ _id: req.params.id, userId: req.user.id });
     if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    const productName = product.productName;
 
     for (const doc of product.documents) {
       if (doc.publicId) {
@@ -154,6 +200,15 @@ const deleteProduct = async (req, res) => {
     }
 
     await product.deleteOne();
+
+    // ── In-app notification ──
+    await createNotification({
+      userId: req.user.id,
+      type: 'product_deleted',
+      // No productId — product is gone
+      message: `🗑️ "${productName}" has been removed from your vault.`,
+    });
+
     res.status(200).json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Delete Product Error:', error);
@@ -161,4 +216,4 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-module.exports = { addProduct, getProducts, getProductById, deleteProduct, getProductStats };
+module.exports = { addProduct, getProducts, getProductById, updateProduct, deleteProduct, getProductStats };

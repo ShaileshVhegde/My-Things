@@ -1,73 +1,113 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();
+const API = 'http://localhost:5000/api/notifications';
 
 export function NotificationProvider({ children }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const prevNotifsRef = useRef([]);
+  const prevCountRef = useRef(0);
 
-  // Request browser notification permissions
+  // Request browser notification permissions once
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
   }, []);
 
-  const fetchNotifications = async () => {
+  const authHeader = () => ({
+    Authorization: `Bearer ${localStorage.getItem('token')}`,
+  });
+
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
     try {
-      const res = await axios.get('http://localhost:5000/api/notifications', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+      const res = await axios.get(API, { headers: authHeader() });
       const newNotifs = res.data.notifications || [];
       setNotifications(newNotifs);
-      setUnreadCount(newNotifs.filter(n => !n.isRead).length);
 
-      // Check for new notifications to trigger browser alert
-      const prevNotifs = prevNotifsRef.current;
-      if (prevNotifs.length > 0 && newNotifs.length > prevNotifs.length) {
-        const latestNotif = newNotifs[0]; // Assuming sorted by date desc
-        if ('Notification' in window && Notification.permission === 'granted' && !latestNotif.isRead) {
-          new Notification('Home Track', {
-            body: latestNotif.message,
-            icon: '/logo.png'
+      const newUnread = newNotifs.filter(n => !n.isRead).length;
+      setUnreadCount(newUnread);
+
+      // Browser push for truly new unread notifications
+      if (newUnread > prevCountRef.current) {
+        const newest = newNotifs.find(n => !n.isRead);
+        if (newest && 'Notification' in window && Notification.permission === 'granted') {
+          new Notification('My Things', {
+            body: newest.message,
+            icon: '/favicon.ico',
           });
         }
       }
-      prevNotifsRef.current = newNotifs;
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+      prevCountRef.current = newUnread;
+    } catch (err) {
+      console.error('[NotificationContext] fetch error:', err.message);
     }
-  };
+  }, [user]);
 
+  // Poll every 60 seconds
   useEffect(() => {
     fetchNotifications();
-    // Refresh notifications every minute
-    const interval = setInterval(fetchNotifications, 60000);
+    const interval = setInterval(fetchNotifications, 60_000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [fetchNotifications]);
 
   const markAsRead = async (id) => {
     try {
-      await axios.patch(`http://localhost:5000/api/notifications/${id}/read`, {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      // Update local state
-      setNotifications(notifications.map(n => 
-        n._id === id ? { ...n, isRead: true } : n
-      ));
+      await axios.patch(`${API}/${id}/read`, {}, { headers: authHeader() });
+      setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
+    } catch (err) {
+      console.error('[NotificationContext] markAsRead error:', err.message);
+    }
+  };
+
+  const markAllRead = async () => {
+    try {
+      await axios.patch(`${API}/mark-all-read`, {}, { headers: authHeader() });
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('[NotificationContext] markAllRead error:', err.message);
+    }
+  };
+
+  const deleteNotification = async (id) => {
+    try {
+      await axios.delete(`${API}/${id}`, { headers: authHeader() });
+      setNotifications(prev => prev.filter(n => n._id !== id));
+      setUnreadCount(prev => {
+        const was = notifications.find(n => n._id === id);
+        return was && !was.isRead ? Math.max(0, prev - 1) : prev;
+      });
+    } catch (err) {
+      console.error('[NotificationContext] delete error:', err.message);
+    }
+  };
+
+  const clearAll = async () => {
+    try {
+      await axios.delete(`${API}/clear-all`, { headers: authHeader() });
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('[NotificationContext] clearAll error:', err.message);
     }
   };
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, fetchNotifications }}>
+    <NotificationContext.Provider value={{
+      notifications,
+      unreadCount,
+      markAsRead,
+      markAllRead,
+      deleteNotification,
+      clearAll,
+      fetchNotifications,
+    }}>
       {children}
     </NotificationContext.Provider>
   );
