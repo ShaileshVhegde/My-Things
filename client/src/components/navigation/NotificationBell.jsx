@@ -40,7 +40,7 @@ export default function NotificationBell() {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute top-12 right-0 w-80 max-h-96 overflow-y-auto bg-bgSurface border border-borderBase rounded-xl shadow-xl z-50 flex flex-col"
+            className="fixed inset-x-4 top-16 md:absolute md:inset-x-auto md:top-12 md:right-0 md:w-80 max-h-[70vh] md:max-h-96 overflow-y-auto bg-bgSurface border border-borderBase rounded-xl shadow-2xl z-50 flex flex-col"
           >
             <div className="px-4 py-3 border-b border-borderBase bg-bgElevated/50 flex justify-between items-center sticky top-0 z-10">
               <h3 className="text-sm font-bold text-textPrimary">Notifications</h3>

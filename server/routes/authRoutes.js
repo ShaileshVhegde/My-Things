@@ -104,8 +104,40 @@ router.post('/signup', async (req, res) => {
           sendEmail({
             to: email,
             subject: 'My Things - Verify Your Account',
-            html: `<h1>Welcome to My Things</h1><p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
-          }).catch(() => {}); // sendEmail already logs errors internally
+            html: `
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <meta charset="utf-8">
+                <style>
+                  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; margin: 0; padding: 0; }
+                  .container { max-width: 500px; margin: 40px auto; background: #1e293b; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid #334155; }
+                  .header { background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 40px 20px; text-align: center; }
+                  .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 700; }
+                  .content { padding: 40px; text-align: center; color: #f1f5f9; }
+                  .otp-code { font-size: 42px; font-weight: 800; color: #60a5fa; letter-spacing: 8px; margin: 24px 0; padding: 15px 30px; background: rgba(96, 165, 250, 0.1); border-radius: 12px; display: inline-block; border: 1px dashed #60a5fa; }
+                  .footer { padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #334155; background: #1a2233; }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <div class="header">
+                    <h1>My Things</h1>
+                  </div>
+                  <div class="content">
+                    <h2 style="margin-top:0; font-size: 24px;">Verification Code</h2>
+                    <p style="color:#94a3b8; line-height: 1.5;">Welcome to <strong>My Things</strong>! Use the secure code below to verify your account and get started.</p>
+                    <div class="otp-code">${otp}</div>
+                    <p style="font-size:13px; color:#64748b; margin-top: 20px;">This code expires in 10 minutes. If you didn't request this code, you can safely ignore this email.</p>
+                  </div>
+                  <div class="footer">
+                    &copy; ${new Date().getFullYear()} My Things - Modern Asset Tracking
+                  </div>
+                </div>
+              </body>
+              </html>
+            `,
+          }).catch(() => {});
         }, 0);
         return;
       }
@@ -136,8 +168,40 @@ router.post('/signup', async (req, res) => {
       sendEmail({
         to: email,
         subject: 'My Things - Verify Your Account',
-        html: `<h1>Welcome to My Things</h1><p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
-      }).catch(() => {}); // sendEmail already logs errors internally
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; margin: 0; padding: 0; }
+              .container { max-width: 500px; margin: 40px auto; background: #1e293b; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid #334155; }
+              .header { background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 40px 20px; text-align: center; }
+              .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 700; }
+              .content { padding: 40px; text-align: center; color: #f1f5f9; }
+              .otp-code { font-size: 42px; font-weight: 800; color: #60a5fa; letter-spacing: 8px; margin: 24px 0; padding: 15px 30px; background: rgba(96, 165, 250, 0.1); border-radius: 12px; display: inline-block; border: 1px dashed #60a5fa; }
+              .footer { padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #334155; background: #1a2233; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>My Things</h1>
+              </div>
+              <div class="content">
+                <h2 style="margin-top:0; font-size: 24px;">Verification Code</h2>
+                <p style="color:#94a3b8; line-height: 1.5;">Welcome to <strong>My Things</strong>! Use the secure code below to verify your account and get started.</p>
+                <div class="otp-code">${otp}</div>
+                <p style="font-size:13px; color:#64748b; margin-top: 20px;">This code expires in 10 minutes. If you didn't request this code, you can safely ignore this email.</p>
+              </div>
+              <div class="footer">
+                &copy; ${new Date().getFullYear()} My Things - Modern Asset Tracking
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      }).catch(() => {});
     }, 0);
   } catch (error) {
     console.error('Signup Error:', error);
@@ -279,6 +343,13 @@ router.post('/google', async (req, res) => {
         isVerified: true, // OAuth is verified by Google
       });
       await user.save();
+
+      // Welcome in-app notification for new Google user
+      await createNotification({
+        userId: user._id,
+        type: 'welcome',
+        message: `🎉 Welcome to My Things, ${user.name}! Your account is verified via Google. Start adding your products to track warranties.`,
+      });
     }
 
     await syncUserRole(user);
@@ -325,9 +396,37 @@ router.post('/forgot-password', async (req, res) => {
       to: user.email,
       subject: 'My Things — Reset Your Password',
       html: `
-        <h2>Password Reset</h2>
-        <p>Your password reset code is: <strong style="font-size:24px;letter-spacing:4px">${otp}</strong></p>
-        <p>This code expires in <strong>10 minutes</strong>. If you didn't request this, ignore this email.</p>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; margin: 0; padding: 0; }
+            .container { max-width: 500px; margin: 40px auto; background: #1e293b; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid #334155; }
+            .header { background: linear-gradient(135deg, #f59e0b, #ef4444); padding: 40px 20px; text-align: center; }
+            .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 700; }
+            .content { padding: 40px; text-align: center; color: #f1f5f9; }
+            .otp-code { font-size: 42px; font-weight: 800; color: #fbbf24; letter-spacing: 8px; margin: 24px 0; padding: 15px 30px; background: rgba(251, 191, 36, 0.1); border-radius: 12px; display: inline-block; border: 1px dashed #fbbf24; }
+            .footer { padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #334155; background: #1a2233; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>My Things</h1>
+            </div>
+            <div class="content">
+              <h2 style="margin-top:0; font-size: 24px;">Password Reset</h2>
+              <p style="color:#94a3b8; line-height: 1.5;">We received a request to reset your password. Use the secure code below to proceed.</p>
+              <div class="otp-code">${otp}</div>
+              <p style="font-size:13px; color:#64748b; margin-top: 20px;">This code expires in 10 minutes. If you didn't request a password reset, you can safely ignore this email.</p>
+            </div>
+            <div class="footer">
+              &copy; ${new Date().getFullYear()} My Things - Modern Asset Tracking
+            </div>
+          </div>
+        </body>
+        </html>
       `,
     });
 

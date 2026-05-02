@@ -9,6 +9,7 @@ import {
 import AppLayout from '../components/AppLayout';
 import ErrorBoundary from '../components/ErrorBoundary';
 import API from '../api/axios';
+import CustomSelect from '../components/ui/CustomSelect';
 
 // ─── Summary card for structured extraction results ──────────────────────────
 function SummaryCard({ summary }) {
@@ -184,24 +185,13 @@ export default function AnalyzePage() {
           </div>
 
           {/* ── Product selector ── */}
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-              <Package size={16} className="text-textMuted" />
-            </div>
-            <select
-              value={selectedId}
-              onChange={e => setSelectedId(e.target.value)}
-              className="w-full bg-bgSurface border border-borderBase rounded-xl pl-9 pr-10 py-3 text-sm text-textPrimary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer transition-all"
-            >
-              <option value="">— Select a product —</option>
-              {products.map(p => (
-                <option key={p._id} value={p._id}>{p.productName}</option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-              <ChevronDown size={16} className="text-textMuted" />
-            </div>
-          </div>
+          <CustomSelect
+            options={products.map(p => ({ value: p._id, label: p.productName }))}
+            value={selectedId}
+            onChange={setSelectedId}
+            placeholder="— Select a product —"
+            className="w-full"
+          />
 
           {/* ── AI status + summary panel ── */}
           <AnimatePresence>

@@ -6,6 +6,7 @@ import {
   ShieldAlert, CheckCircle, User, Pencil, Trash2, UserPlus, Shield, AlertTriangle
 } from 'lucide-react';
 import AdminLayout from '../../components/navigation/AdminLayout';
+import CustomSelect from '../../components/ui/CustomSelect';
 
 
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -140,16 +141,15 @@ function UserFormModal({ editUser, onClose, onSaved }) {
             )}
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-textMuted mb-1.5 uppercase tracking-wider">Role</label>
-            <select
-              name="role" value={form.role} onChange={handleChange}
-              className="w-full bg-bgElevated border border-borderBase rounded-xl px-4 py-2.5 text-sm text-textPrimary focus:outline-none focus:border-primary transition-colors"
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="Role"
+            options={[
+              { value: 'user', label: 'User' },
+              { value: 'admin', label: 'Admin' }
+            ]}
+            value={form.role}
+            onChange={(val) => setForm({ ...form, role: val })}
+          />
 
           {!isEdit && (
             <div>

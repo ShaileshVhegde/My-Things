@@ -104,7 +104,7 @@ export default function AdminLayout({ children }) {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-12 right-0 w-64 bg-bgSurface border border-borderBase rounded-xl shadow-xl overflow-hidden z-50"
+                  className="fixed inset-x-4 top-16 md:absolute md:inset-x-auto md:top-12 md:right-0 md:w-64 bg-bgSurface border border-borderBase rounded-xl shadow-2xl overflow-hidden z-50"
                 >
                   <div className="px-4 py-5 border-b border-borderBase bg-bgElevated/50 flex flex-col items-center text-center">
                     <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white text-xl font-bold mb-3 shadow-inner">
@@ -130,9 +130,30 @@ export default function AdminLayout({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" onClick={() => setProfileOpen(false)}>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8" onClick={() => setProfileOpen(false)}>
           {children}
         </main>
+
+        {/* Mobile Admin Bottom Navbar */}
+        <div className="md:hidden fixed bottom-0 left-0 w-full bg-bgSurface/90 backdrop-blur-lg border-t border-borderBase px-6 py-2 flex justify-around items-center z-50 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+          {adminNavItems.map(({ label, icon: Icon, to }) => {
+            const active = location.pathname === to;
+            return (
+              <Link key={to} to={to} className="flex flex-col items-center gap-1">
+                <div className={`p-2 rounded-xl transition-all ${active ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-textSecondary hover:text-textPrimary'}`}>
+                  <Icon size={20} />
+                </div>
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'text-primary' : 'text-textMuted'}`}>{label}</span>
+              </Link>
+            );
+          })}
+          <button onClick={() => navigate('/dashboard')} className="flex flex-col items-center gap-1 text-textSecondary">
+            <div className="p-2 rounded-xl hover:bg-bgElevated">
+              <ChevronLeft size={20} />
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-textMuted">Back</span>
+          </button>
+        </div>
       </div>
     </div>
   );

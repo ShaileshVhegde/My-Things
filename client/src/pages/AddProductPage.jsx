@@ -5,6 +5,8 @@ import API from '../api/axios';
 import { ArrowLeft, Upload, CheckCircle, Loader } from 'lucide-react';
 import AppLayout from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
+import CustomSelect from '../components/ui/CustomSelect';
+import CustomDatePicker from '../components/ui/CustomDatePicker';
 
 
 
@@ -89,7 +91,11 @@ export default function AddProductPage() {
     })()
     : null;
 
+  const CATEGORY_OPTIONS = CATEGORIES.map(c => ({ value: c, label: c }));
+  const WARRANTY_UNIT_OPTIONS = WARRANTY_UNITS.map(u => ({ value: u, label: u }));
+
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleValueChange = (name, value) => setForm(prev => ({ ...prev, [name]: value }));
   const handleFile = (name, file) => setFiles(prev => ({ ...prev, [name]: file }));
 
   const handleSubmit = async (e) => {
@@ -154,7 +160,7 @@ export default function AddProductPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto pb-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button onClick={() => navigate(-1)}
@@ -192,14 +198,13 @@ export default function AddProductPage() {
 
           {/* Category */}
           <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-textSecondary mb-1.5">Category *</label>
-              <select name="category" required value={form.category} onChange={handleChange}
-                className="w-full bg-bgElevated border border-borderBase rounded-xl px-4 py-3 text-textPrimary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm">
-                <option value="" disabled>Select category</option>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
+            <CustomSelect
+              label="Category *"
+              options={CATEGORY_OPTIONS}
+              value={form.category}
+              onChange={(val) => handleValueChange('category', val)}
+              placeholder="Select category"
+            />
 
             {form.category === 'Other' && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
@@ -216,14 +221,12 @@ export default function AddProductPage() {
 
           {/* Purchase Date + Warranty Months */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-textSecondary mb-1.5">Purchase Date *</label>
-              <input
-                type="date" name="purchaseDate" required
-                value={form.purchaseDate} onChange={handleChange}
-                className="w-full bg-bgElevated border border-borderBase rounded-xl px-4 py-3 text-textPrimary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
-              />
-            </div>
+            <CustomDatePicker
+              label="Purchase Date *"
+              value={form.purchaseDate}
+              onChange={(val) => handleValueChange('purchaseDate', val)}
+              placeholder="Select date"
+            />
             <div>
               <label className="block text-sm font-medium text-textSecondary mb-1.5">Warranty Period *</label>
               <div className="flex gap-2">
@@ -233,15 +236,16 @@ export default function AddProductPage() {
                   value={form.warrantyValue} onChange={handleChange}
                   className="w-2/3 bg-bgElevated border border-borderBase rounded-xl px-4 py-3 text-textPrimary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
                 />
-                <select name="warrantyUnit" required value={form.warrantyUnit} onChange={handleChange}
-                  className="w-1/3 bg-bgElevated border border-borderBase rounded-xl px-3 py-3 text-textPrimary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm">
-                  {WARRANTY_UNITS.map(u => (
-                    <option key={u} value={u}>{u}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  options={WARRANTY_UNIT_OPTIONS}
+                  value={form.warrantyUnit}
+                  onChange={(val) => handleValueChange('warrantyUnit', val)}
+                  className="w-1/3"
+                />
               </div>
             </div>
           </div>
+
 
           {/* Expiry Preview */}
           {expiryPreview && (

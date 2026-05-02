@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Moon, Sun, LogOut } from 'lucide-react';
+import { Moon, Sun, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Sidebar from './navigation/Sidebar';
@@ -55,7 +56,7 @@ export default function AppLayout({ children }) {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-12 right-0 w-64 bg-bgSurface border border-borderBase rounded-xl shadow-xl overflow-hidden"
+                  className="fixed inset-x-4 top-16 md:absolute md:inset-x-auto md:top-12 md:right-0 md:w-64 bg-bgSurface border border-borderBase rounded-xl shadow-2xl overflow-hidden"
                 >
                   <div className="px-4 py-5 border-b border-borderBase bg-bgElevated/50 flex flex-col items-center text-center">
                     <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white text-xl font-bold mb-3 shadow-inner">
@@ -64,7 +65,16 @@ export default function AppLayout({ children }) {
                     <p className="text-sm font-bold text-textPrimary w-full truncate">{displayName}</p>
                     <p className="text-xs font-medium text-textMuted mt-1 w-full truncate">{user?.email}</p>
                   </div>
-                  <div className="p-2">
+                  <div className="p-2 space-y-1">
+                    {user?.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold text-primary hover:bg-primary/10 transition-colors outline-none"
+                      >
+                        <Shield size={16} /> Admin Panel
+                      </Link>
+                    )}
                     <button onClick={() => { setUserMenuOpen(false); logout(); }}
                       className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold text-danger hover:bg-danger/10 transition-colors outline-none"
                     >
