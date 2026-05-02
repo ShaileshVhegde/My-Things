@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import axios from 'axios';
-
-const API = 'http://localhost:5000/api';
+import API from '../api/axios';
 const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
@@ -31,9 +29,7 @@ export function AuthProvider({ children }) {
       return;
     }
     try {
-      const res = await axios.get(`${API}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await API.get(`/auth/me`);
       console.log('[Auth] /me returned:', res.data);
       setUser(res.data); // always overwrite with fresh data including role
     } catch (err) {

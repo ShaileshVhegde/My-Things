@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import API from '../api/axios';
 import { ArrowLeft, Upload, CheckCircle, Loader } from 'lucide-react';
 import AppLayout from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
 
-const API = 'http://localhost:5000/api';
+
 
 const CATEGORIES = [
   'Electronics', 'Mobile', 'TV', 'Refrigerator', 'Washing Machine',
@@ -22,9 +22,8 @@ function FileUploadZone({ label, name, file, onFileChange }) {
       <div
         onDrop={(e) => { e.preventDefault(); onFileChange(name, e.dataTransfer.files[0]); }}
         onDragOver={e => e.preventDefault()}
-        className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all cursor-pointer ${
-          file ? 'border-primary/50 bg-primary/5' : 'border-borderBase hover:border-primary/40 hover:bg-bgElevated'
-        }`}
+        className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all cursor-pointer ${file ? 'border-primary/50 bg-primary/5' : 'border-borderBase hover:border-primary/40 hover:bg-bgElevated'
+          }`}
         onClick={() => document.getElementById(`file-${name}`).click()}
       >
         <input
@@ -76,18 +75,18 @@ export default function AddProductPage() {
   // Calculate expiry date preview
   const expiryPreview = (form.purchaseDate && form.warrantyValue && form.warrantyUnit)
     ? (() => {
-        const d = new Date(form.purchaseDate);
-        const val = parseInt(form.warrantyValue);
-        if (form.warrantyUnit === 'Days') d.setDate(d.getDate() + val);
-        else if (form.warrantyUnit === 'Months') d.setMonth(d.getMonth() + val);
-        else if (form.warrantyUnit === 'Years') d.setFullYear(d.getFullYear() + val);
-        
-        const now = new Date();
-        const daysLeft = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
-        const statusText = daysLeft < 0 ? 'Expired' : `${daysLeft} days left`;
-        
-        return { date: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }), statusText };
-      })()
+      const d = new Date(form.purchaseDate);
+      const val = parseInt(form.warrantyValue);
+      if (form.warrantyUnit === 'Days') d.setDate(d.getDate() + val);
+      else if (form.warrantyUnit === 'Months') d.setMonth(d.getMonth() + val);
+      else if (form.warrantyUnit === 'Years') d.setFullYear(d.getFullYear() + val);
+
+      const now = new Date();
+      const daysLeft = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+      const statusText = daysLeft < 0 ? 'Expired' : `${daysLeft} days left`;
+
+      return { date: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }), statusText };
+    })()
     : null;
 
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -98,8 +97,8 @@ export default function AddProductPage() {
     setLoading(true);
     setError('');
 
-    const finalCategory = form.category === 'Other' && form.customCategory.trim() !== '' 
-      ? form.customCategory 
+    const finalCategory = form.category === 'Other' && form.customCategory.trim() !== ''
+      ? form.customCategory
       : form.category;
 
     const data = new FormData();
@@ -116,21 +115,18 @@ export default function AddProductPage() {
     Object.entries(files).forEach(([k, f]) => { if (f) data.append(k, f); });
 
     try {
-      const res = await axios.post(`${API}/products/add`, data, {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-          'Content-Type': 'multipart/form-data',
-        },
+      const res = await API.post('/products/add', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      
+
       // Fire-and-forget: trigger OCR extraction in background if documents were uploaded
       const newProductId = res.data?.product?._id;
       const hasFiles = Object.values(files).some(f => f !== null);
       if (newProductId && hasFiles) {
-        axios.post(`${API}/ai/extract`,
+        API.post('/ai/extract',
           { productId: newProductId },
-          { headers: { Authorization: `Bearer ${getToken()}` } }
-        ).catch(() => {}); // silent — background job
+          {}
+        ).catch(() => { }); // silent — background job
       }
 
       setSuccess(true);
@@ -204,7 +200,7 @@ export default function AddProductPage() {
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            
+
             {form.category === 'Other' && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
                 <label className="block text-sm font-medium text-textSecondary mb-1.5">Custom Category Name *</label>
@@ -231,7 +227,7 @@ export default function AddProductPage() {
             <div>
               <label className="block text-sm font-medium text-textSecondary mb-1.5">Warranty Period *</label>
               <div className="flex gap-2">
-                <input 
+                <input
                   type="number" name="warrantyValue" required min="1"
                   placeholder="e.g. 1, 6, 12"
                   value={form.warrantyValue} onChange={handleChange}

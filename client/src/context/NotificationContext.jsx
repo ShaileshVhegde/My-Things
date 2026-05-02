@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
+import API from '../api/axios';
 import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();
-const API = 'http://localhost:5000/api/notifications';
+
+const NOTIF_PATH = '/notifications';
+
 
 export function NotificationProvider({ children }) {
   const { user } = useAuth();
@@ -25,7 +27,7 @@ export function NotificationProvider({ children }) {
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
     try {
-      const res = await axios.get(API, { headers: authHeader() });
+      const res = await API.get(NOTIF_PATH, { headers: authHeader() });
       const newNotifs = res.data.notifications || [];
       setNotifications(newNotifs);
 
@@ -57,7 +59,7 @@ export function NotificationProvider({ children }) {
 
   const markAsRead = async (id) => {
     try {
-      await axios.patch(`${API}/${id}/read`, {}, { headers: authHeader() });
+      await API.patch(`${NOTIF_PATH}/${id}/read`, {}, { headers: authHeader() });
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
@@ -67,7 +69,7 @@ export function NotificationProvider({ children }) {
 
   const markAllRead = async () => {
     try {
-      await axios.patch(`${API}/mark-all-read`, {}, { headers: authHeader() });
+      await API.patch(`${NOTIF_PATH}/mark-all-read`, {}, { headers: authHeader() });
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (err) {
@@ -77,7 +79,7 @@ export function NotificationProvider({ children }) {
 
   const deleteNotification = async (id) => {
     try {
-      await axios.delete(`${API}/${id}`, { headers: authHeader() });
+      await API.delete(`${NOTIF_PATH}/${id}`, { headers: authHeader() });
       setNotifications(prev => prev.filter(n => n._id !== id));
       setUnreadCount(prev => {
         const was = notifications.find(n => n._id === id);
@@ -90,7 +92,7 @@ export function NotificationProvider({ children }) {
 
   const clearAll = async () => {
     try {
-      await axios.delete(`${API}/clear-all`, { headers: authHeader() });
+      await API.delete(`${NOTIF_PATH}/clear-all`, { headers: authHeader() });
       setNotifications([]);
       setUnreadCount(0);
     } catch (err) {

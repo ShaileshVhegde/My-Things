@@ -5,7 +5,7 @@ import { ShieldCheck, AlertTriangle, CheckCircle, Clock, Package, TrendingUp, Be
 import { Link } from 'react-router-dom';
 import AppLayout from '../components/AppLayout';
 import ErrorBoundary from '../components/ErrorBoundary';
-import apiClient from '../utils/apiClient';
+import API from '../api/axios';
 
 const CATEGORY_COLORS = ['#6C47FF', '#00D4AA', '#FF6B35', '#FF3B5C', '#00C896', '#7D5EFF', '#FFAD33'];
 
@@ -44,7 +44,7 @@ function AlertItem({ item, idx }) {
       </div>
       <div className="flex items-center gap-2">
         <Link to={`/analyze?productId=${item.id}`} className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a5 5 0 1 0 5 5"/><path d="M8.5 8.5c-.828 1.333-.828 4.167 0 5.5"/><path d="M15.5 8.5c.828 1.333.828 4.167 0 5.5"/><circle cx="12" cy="17" r="1"/><path d="M12 18v4"/><path d="M8 22h8"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a5 5 0 1 0 5 5" /><path d="M8.5 8.5c-.828 1.333-.828 4.167 0 5.5" /><path d="M15.5 8.5c.828 1.333.828 4.167 0 5.5" /><circle cx="12" cy="17" r="1" /><path d="M12 18v4" /><path d="M8 22h8" /></svg>
           Ask AI
         </Link>
         <Link to={`/products/${item.id}`} className="text-xs font-bold px-2 py-1 rounded-lg hover:opacity-80 transition-opacity"
@@ -63,10 +63,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const fetchStats = async () => {
       try {
-        const res = await apiClient.get('/products/stats');
+        const res = await API.get('/products/stats');
         if (isMounted) {
           setStats(res.data);
           setError('');
@@ -86,7 +86,7 @@ export default function DashboardPage() {
       }
     };
     fetchStats();
-    
+
     return () => { isMounted = false; };
   }, []);
 
@@ -130,14 +130,14 @@ export default function DashboardPage() {
       <ErrorBoundary>
         <div className="space-y-6 max-w-7xl mx-auto">
           {/* Header */}
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} 
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
             className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
           >
             <div>
               <h1 className="text-2xl lg:text-3xl font-display font-bold text-textPrimary">Dashboard</h1>
               <p className="text-textMuted text-sm mt-1">Your warranty overview at a glance</p>
             </div>
-            <Link to="/products/add" 
+            <Link to="/products/add"
               className="flex items-center justify-center gap-2 bg-primary hover:bg-primaryHover text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-primary/20 transition-all w-full sm:w-auto"
             >
               <Package size={18} />

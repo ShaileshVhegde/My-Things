@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import API from '../api/axios';
 import {
   ArrowLeft, Trash2, Download, ExternalLink, ShieldCheck, ShieldAlert,
   ShieldX, Store, CalendarDays, Tag, FileText, Loader, Phone, MapPin, Clock, BrainCircuit
@@ -9,7 +9,7 @@ import {
 import AppLayout from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
 
-const API = 'http://localhost:5000/api';
+
 
 const DOC_LABELS = { bill: 'Bill / Invoice', warranty: 'Warranty Card', manual: 'User Manual' };
 
@@ -49,7 +49,7 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`${API}/products/${id}`, {
+        const res = await API.get(`/products/${id}`, {
           headers: { Authorization: `Bearer ${getToken()}` }
         });
         setProduct(res.data.product);
@@ -66,7 +66,7 @@ export default function ProductDetailsPage() {
     if (!window.confirm('Delete this product? This cannot be undone.')) return;
     setDeleting(true);
     try {
-      await axios.delete(`${API}/products/${id}`, {
+      await API.delete(`/products/${id}`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       navigate('/products');

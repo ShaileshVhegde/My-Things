@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import API from '../api/axios';
 import {
   Plus, Search, Filter, Laptop, Tv, Refrigerator, WashingMachine,
   Smartphone, Car, Home, Headphones, Camera, Watch, Zap, Package
@@ -9,7 +9,7 @@ import {
 import AppLayout from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
 
-const API = 'http://localhost:5000/api';
+
 
 // Category → icon + color mapping
 const CATEGORY_META = {
@@ -80,7 +80,7 @@ function ProductCard({ product, idx }) {
         <div className="flex items-center gap-2 mt-4 pt-4 border-t border-borderBase">
           <Link to={`/analyze?productId=${product._id}`} onClick={(e) => e.stopPropagation()}
             className="flex-1 flex justify-center items-center gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary py-2 rounded-xl text-xs font-semibold transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
             Ask AI
           </Link>
           <Link to={`/products/${product._id}`}
@@ -105,7 +105,7 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(`${API}/products`, {
+        const res = await API.get('/products', {
           headers: { Authorization: `Bearer ${getToken()}` }
         });
         setProducts(res.data.products);
@@ -161,9 +161,8 @@ export default function ProductsPage() {
           <div className="flex gap-2">
             {['all', 'active', 'expiring', 'expired'].map(s => (
               <button key={s} onClick={() => setFilterStatus(s)}
-                className={`px-3 py-2 rounded-xl text-xs font-semibold capitalize transition-all ${
-                  filterStatus === s ? 'bg-primary text-white' : 'bg-bgSurface border border-borderBase text-textSecondary hover:border-primary/50'
-                }`}>
+                className={`px-3 py-2 rounded-xl text-xs font-semibold capitalize transition-all ${filterStatus === s ? 'bg-primary text-white' : 'bg-bgSurface border border-borderBase text-textSecondary hover:border-primary/50'
+                  }`}>
                 {s}
               </button>
             ))}

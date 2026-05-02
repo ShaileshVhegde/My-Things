@@ -8,17 +8,17 @@ import {
 } from 'lucide-react';
 import AppLayout from '../components/AppLayout';
 import ErrorBoundary from '../components/ErrorBoundary';
-import apiClient from '../utils/apiClient';
+import API from '../api/axios';
 
 // ─── Summary card for structured extraction results ──────────────────────────
 function SummaryCard({ summary }) {
   if (!summary) return null;
   const fields = [
-    { icon: Package,   label: 'Product',    val: summary.productName },
-    { icon: Tag,       label: 'Brand',      val: summary.brand },
-    { icon: Calendar,  label: 'Purchased',  val: summary.purchaseDate },
-    { icon: ShieldCheck,label:'Warranty',   val: summary.warrantyExpiry },
-    { icon: Store,     label: 'Store',      val: summary.storeName },
+    { icon: Package, label: 'Product', val: summary.productName },
+    { icon: Tag, label: 'Brand', val: summary.brand },
+    { icon: Calendar, label: 'Purchased', val: summary.purchaseDate },
+    { icon: ShieldCheck, label: 'Warranty', val: summary.warrantyExpiry },
+    { icon: Store, label: 'Store', val: summary.storeName },
   ].filter(f => f.val && f.val !== 'N/A');
 
   if (fields.length === 0 && summary.note) {
@@ -45,10 +45,10 @@ function SummaryCard({ summary }) {
 // ─── OCR status badge ─────────────────────────────────────────────────────────
 function OcrBadge({ status }) {
   const map = {
-    done:    { icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10', label: 'Documents analysed' },
-    pending: { icon: Loader2,      color: 'text-warn',    bg: 'bg-warn/10',    label: 'Analysing documents…' },
-    failed:  { icon: AlertCircle,  color: 'text-danger',  bg: 'bg-danger/10',  label: 'Analysis failed' },
-    none:    { icon: FileText,     color: 'text-textMuted',bg:'bg-bgBase',      label: 'No documents uploaded' },
+    done: { icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10', label: 'Documents analysed' },
+    pending: { icon: Loader2, color: 'text-warn', bg: 'bg-warn/10', label: 'Analysing documents…' },
+    failed: { icon: AlertCircle, color: 'text-danger', bg: 'bg-danger/10', label: 'Analysis failed' },
+    none: { icon: FileText, color: 'text-textMuted', bg: 'bg-bgBase', label: 'No documents uploaded' },
   };
   const { icon: Icon, color, bg, label } = map[status] || map.none;
   return (
@@ -79,12 +79,12 @@ export default function AnalyzePage() {
   // ── Load products list ───────────────────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
-    apiClient.get('/products')
+    API.get('/products')
       .then(r => {
         if (isMounted) setProducts(r.data.products || []);
       })
       .catch(console.error);
-      
+
     return () => { isMounted = false; };
   }, []);
 
@@ -92,9 +92,9 @@ export default function AnalyzePage() {
   useEffect(() => {
     let isMounted = true;
     if (!selectedId) { setAiStatus(null); return; }
-    
+
     setLoadingStatus(true);
-    apiClient.get(`/ai/status/${selectedId}`)
+    API.get(`/ai/status/${selectedId}`)
       .then(r => {
         if (!isMounted) return;
         setAiStatus(r.data);
@@ -102,7 +102,7 @@ export default function AnalyzePage() {
         const history = r.data.chatHistory || [];
         const restored = history.flatMap((h, i) => [
           { id: `h-u-${i}`, role: 'user', text: h.question },
-          { id: `h-a-${i}`, role: 'ai',   text: h.answer },
+          { id: `h-a-${i}`, role: 'ai', text: h.answer },
         ]);
         setMessages([
           { id: 'init', role: 'ai', text: `I'm ready to help with your **${r.data.productName}**. Ask me anything!` },
@@ -111,7 +111,7 @@ export default function AnalyzePage() {
       })
       .catch(() => { if (isMounted) setAiStatus(null); })
       .finally(() => { if (isMounted) setLoadingStatus(false); });
-      
+
     return () => { isMounted = false; };
   }, [selectedId]);
 
@@ -120,7 +120,7 @@ export default function AnalyzePage() {
     if (aiStatus?.ocrStatus !== 'pending') return;
     const timer = setInterval(async () => {
       try {
-        const r = await apiClient.get(`/ai/status/${selectedId}`);
+        const r = await API.get(`/ai/status/${selectedId}`);
         setAiStatus(r.data);
         if (r.data.ocrStatus !== 'pending') clearInterval(timer);
       } catch { clearInterval(timer); }
@@ -145,7 +145,7 @@ export default function AnalyzePage() {
     setSending(true);
 
     try {
-      const r = await apiClient.post(`/ai/ask`, { productId: selectedId, question: q });
+      const r = await API.post(`/ai/ask`, { productId: selectedId, question: q });
       setMessages(prev => [...prev, { id: Date.now() + 1, role: 'ai', text: r.data.answer }]);
     } catch (err) {
       const msg = err.response?.data?.message || 'AI service not responding. Please check your connection and try again.';
@@ -272,21 +272,19 @@ export default function AnalyzePage() {
                   className={`flex items-end gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
                   {/* Avatar */}
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    msg.role === 'user'
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user'
                       ? 'bg-bgElevated border border-borderBase text-textSecondary'
                       : 'bg-primary text-white'
-                  }`}>
+                    }`}>
                     {msg.role === 'user' ? <User size={14} /> : <BrainCircuit size={14} />}
                   </div>
                   {/* Bubble */}
-                  <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                    msg.role === 'user'
+                  <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === 'user'
                       ? 'bg-primary text-white rounded-br-sm'
                       : msg.isError
                         ? 'bg-danger/10 border border-danger/20 text-danger rounded-bl-sm'
                         : 'bg-bgElevated border border-borderBase text-textPrimary rounded-bl-sm shadow-sm'
-                  }`}>
+                    }`}>
                     {msg.text}
                   </div>
                 </motion.div>

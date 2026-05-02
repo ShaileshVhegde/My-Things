@@ -14,7 +14,23 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'https://my-things-rho.vercel.app',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. Postman, curl) or from allowed list
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 

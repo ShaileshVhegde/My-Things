@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
+import API from '../../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, X, ChevronLeft, ChevronRight, Package, Clock,
@@ -7,9 +7,9 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../../components/navigation/AdminLayout';
 
-const API = 'http://localhost:5000/api';
-const token = () => localStorage.getItem('token');
-const authHeaders = () => ({ Authorization: `Bearer ${token()}` });
+
+const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+
 
 function Badge({ children, color }) {
   const colors = {
@@ -76,10 +76,10 @@ function UserFormModal({ editUser, onClose, onSaved }) {
     try {
       if (isEdit) {
         const payload = { name: form.name, email: form.email, role: form.role };
-        await axios.put(`${API}/admin/users/${editUser._id}`, payload, { headers: authHeaders() });
+        await API.put(`/admin/users/${editUser._id}`, payload, { headers: authHeaders() });
       } else {
         if (!form.password) { setError('Password is required for new users'); setLoading(false); return; }
-        await axios.post(`${API}/admin/users`, form, { headers: authHeaders() });
+        await API.post('/admin/users', form, { headers: authHeaders() });
       }
       onSaved();
       onClose();
@@ -183,7 +183,7 @@ function UserDetailModal({ userId, onClose }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`${API}/admin/users/${userId}`, { headers: authHeaders() })
+    API.get(`/admin/users/${userId}`, { headers: authHeaders() })
       .then(res => setData(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -309,7 +309,7 @@ export default function AdminUsersPage() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/admin/users`, {
+      const res = await API.get('/admin/users', {
         params: { search: debouncedSearch, filter, page, limit: 15 },
         headers: authHeaders()
       });
@@ -333,7 +333,7 @@ export default function AdminUsersPage() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      const res = await axios.delete(`${API}/admin/users/${deleteTarget._id}`, { headers: authHeaders() });
+      const res = await API.delete(`/admin/users/${deleteTarget._id}`, { headers: authHeaders() });
       showToast(res.data.message);
       setDeleteTarget(null);
       fetchUsers();

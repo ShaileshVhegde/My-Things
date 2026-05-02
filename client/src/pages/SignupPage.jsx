@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import axios from 'axios';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import HomeTrackLogo from '../components/HomeTrackLogo';
+import API from '../api/axios';
 
 const slideInRight = {
   initial: { opacity: 0, x: 40 },
@@ -31,7 +31,7 @@ export default function SignupPage() {
       try {
         setLoading(true);
         setError('');
-        const res = await axios.post('http://localhost:5000/api/auth/google', {
+        const res = await API.post('/auth/google', {
           access_token: codeResponse.access_token
         });
         localStorage.setItem('token', res.data.token);
@@ -60,7 +60,7 @@ export default function SignupPage() {
     }
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/signup', {
+      const res = await API.post('/auth/signup', {
         name: formData.name,
         email: formData.email,
         password: formData.password
@@ -79,7 +79,7 @@ export default function SignupPage() {
     setError('');
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/verify-otp', {
+      const res = await API.post('/auth/verify-otp', {
         email: formData.email,
         otp: formData.otp
       });

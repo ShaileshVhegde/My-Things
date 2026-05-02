@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, X, Mail, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import axios from 'axios';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import HomeTrackLogo from '../components/HomeTrackLogo';
+import API from '../api/axios';
 
-const API = 'http://localhost:5000/api/auth';
 
 const slideInLeft = {
   initial: { opacity: 0, x: -40 },
@@ -23,16 +22,16 @@ function ForgotPasswordModal({ onClose }) {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
-  const [step, setStep]           = useState('email');   // 'email' | 'otp' | 'reset'
-  const [email, setEmail]         = useState('');
-  const [otp, setOtp]             = useState('');
+  const [step, setStep] = useState('email');   // 'email' | 'otp' | 'reset'
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
   const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPw, setShowPw]       = useState(false);
-  const [error, setError]         = useState('');
-  const [loading, setLoading]     = useState(false);
-  const [success, setSuccess]     = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
 
   // Step 1 — request OTP
   const handleRequestOtp = async (e) => {
@@ -40,7 +39,7 @@ function ForgotPasswordModal({ onClose }) {
     setError('');
     setLoading(true);
     try {
-      await axios.post(`${API}/forgot-password`, { email: email.trim() });
+      await API.post('/auth/forgot-password', { email: email.trim() });
       setSuccess('');
       setStep('otp');
     } catch (err) {
@@ -56,7 +55,7 @@ function ForgotPasswordModal({ onClose }) {
     setError('');
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/verify-reset-otp`, { email: email.trim(), otp: otp.trim() });
+      const res = await API.post('/auth/verify-reset-otp', { email: email.trim(), otp: otp.trim() });
       setResetToken(res.data.resetToken);
       setStep('reset');
     } catch (err) {
@@ -76,7 +75,7 @@ function ForgotPasswordModal({ onClose }) {
     }
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/reset-password`, { resetToken, newPassword });
+      const res = await API.post('/auth/reset-password', { resetToken, newPassword });
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
       onClose();
@@ -313,8 +312,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -324,7 +323,7 @@ export default function LoginPage() {
       try {
         setLoading(true);
         setError('');
-        const res = await axios.post(`${API}/google`, { access_token: codeResponse.access_token });
+        const res = await API.post('/auth/google', { access_token: codeResponse.access_token });
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
         navigate('/dashboard', { replace: true });
@@ -341,7 +340,7 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post(`${API}/login`, formData);
+      const res = await API.post('/auth/login', formData);
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
       navigate('/dashboard', { replace: true });

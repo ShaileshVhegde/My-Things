@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import API from '../../api/axios';
 import { Users, Package, ShieldAlert, Clock, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import AdminLayout from '../../components/navigation/AdminLayout';
 
-const API = 'http://localhost:5000/api';
+
 
 function StatCard({ icon: Icon, label, value, color, delay = 0 }) {
   return (
@@ -32,7 +32,7 @@ export default function AdminOverviewPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get(`${API}/admin/stats`, {
+        const res = await API.get('/admin/stats', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setStats(res.data);
