@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment variables (NEVER commit these)
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+server/.env
+client/.env
+client/.env.development
+client/.env.production
+
+# Build output
+client/dist/
+client/build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
